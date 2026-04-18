@@ -13,5 +13,6 @@ def get_future_datetime(days_ahead=3, time_string="13:00:00"):
 
 def extract_html_value(text, pattern):
     match = re.search(pattern, text)
-    if not match: raise ValueError(f"Pattern not found: {pattern}")
+    if not match:
+        raise ValueError(f"Pattern not found: {pattern}")
     return html.unescape(match.group(1))

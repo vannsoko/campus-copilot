@@ -1,4 +1,4 @@
-# Secrets
+# Secrets et Environnement
 .env
 manage-bookings/.env
 *.env
@@ -6,6 +6,7 @@ manage-bookings/.env
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 venv/
 tumai/
 

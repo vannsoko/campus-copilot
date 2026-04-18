@@ -15,10 +15,14 @@ load_dotenv('.env', override=True)
 
 USERNAME = getenv("USERNAME")
 PASSWORD = getenv("PASSWORD")
+
 TIMEZONE = getenv("TIMEZONE") or "Europe/Berlin"
+
 RESOURCE_URL_PATH = getenv("RESOURCE_URL_PATH")
 SERVICE_ID = getenv("SERVICE_ID")
+
 RESOURCE_URL = f"{BOOKING_API_BASE}{RESOURCE_URL_PATH}" if RESOURCE_URL_PATH else None
 
+# Booking time slots
 BOOKING_TIMES_CSV = getenv("BOOKING_TIMES") or ""
 BOOKING_TIMES = [{"start": b.split("-")[0].strip(), "end": b.split("-")[1].strip()} for b in BOOKING_TIMES_CSV.split(",") if "-" in b]
