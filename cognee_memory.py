@@ -9,26 +9,41 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── Tentative d'import Cognee avec configuration Bedrock/Anthropic ─
+# ── Configuration Cognee sur AWS Bedrock ──────────────────────────
 COGNEE_AVAILABLE = False
 
 try:
     import cognee
     from cognee import SearchType
+    from cognee.infrastructure.llm.config import get_llm_config
+    from cognee.infrastructure.databases.vector.embeddings.config import get_embedding_config
 
-    # Cognee a besoin d'un LLM provider — on pointe vers Anthropic direct
-    # (plus simple que Bedrock pour Cognee en 48h)
-    os.environ["LLM_API_KEY"] = os.getenv("ANTHROPIC_API_KEY", "")
-    os.environ["LLM_PROVIDER"] = "anthropic"
-    os.environ["LLM_MODEL"] = "claude-sonnet-4-5"
-    os.environ["EMBEDDING_PROVIDER"] = "openai"
-    os.environ["EMBEDDING_MODEL"] = "text-embedding-3-small"
+    _aws_key = os.getenv("AWS_ACCESS_KEY_ID")
+    _aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+    _aws_region = os.getenv("AWS_DEFAULT_REGION", "eu-central-1")
+    _bedrock_model = os.getenv("BEDROCK_MODEL_ID", "eu.anthropic.claude-sonnet-4-5-20250929-v1:0")
 
-    if os.getenv("ANTHROPIC_API_KEY"):
+    if _aws_key and _aws_secret:
+        # Credentials AWS dans l'environnement (LiteLLM les lit automatiquement)
+        os.environ["AWS_ACCESS_KEY_ID"] = _aws_key
+        os.environ["AWS_SECRET_ACCESS_KEY"] = _aws_secret
+        os.environ["AWS_DEFAULT_REGION"] = _aws_region
+
+        # LLM : BedrockAdapter natif de Cognee
+        llm_cfg = get_llm_config()
+        llm_cfg.llm_provider = "bedrock"
+        llm_cfg.llm_model = _bedrock_model  # ex: "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+
+        # Embeddings : fastembed (local, zéro API nécessaire)
+        emb_cfg = get_embedding_config()
+        emb_cfg.embedding_provider = "fastembed"
+        emb_cfg.embedding_model = "BAAI/bge-small-en-v1.5"  # ~130MB, rapide
+        emb_cfg.embedding_dimensions = 384
+
         COGNEE_AVAILABLE = True
-        print("✅ Cognee actif (Anthropic)")
+        print(f"✅ Cognee actif (Bedrock LLM: {_bedrock_model} | Embeddings: fastembed local)")
     else:
-        print("⚠️ Cognee installé mais ANTHROPIC_API_KEY manquante — fallback SQLite")
+        print("⚠️ AWS credentials manquantes — Cognee fallback SQLite")
 except ImportError:
     print("⚠️ Cognee non installé — fallback SQLite actif")
 
@@ -92,28 +107,32 @@ async def remember_course(course_name: str, summary: str, pdf_content: str = "")
     À appeler juste après run_moodle_agent().
     Indexe un cours dans la mémoire persistante de l'étudiant.
     """
-    # Tentative Cognee (graphe sémantique riche)
+    # Tronque les entrées pour éviter les injections et coûts excessifs
+    safe_name = str(course_name)[:100]
+    safe_summary = str(summary)[:800]
+    safe_pdf = str(pdf_content)[:2000] if pdf_content else ""
+
     if COGNEE_AVAILABLE:
         try:
-            content = f"Cours universitaire: {course_name}\n\nRésumé: {summary}"
-            if pdf_content:
-                content += f"\n\nContenu complet: {pdf_content[:2000]}"
+            content = f"Cours universitaire: {safe_name}\n\nRésumé: {safe_summary}"
+            if safe_pdf:
+                content += f"\n\nContenu: {safe_pdf}"
             await cognee.add(content, dataset_name="student_courses")
             await cognee.cognify()
-            print(f"🧠 Cognee: '{course_name}' indexé dans le graphe")
+            print(f"🧠 Cognee: '{safe_name}' indexé dans le graphe")
         except Exception as e:
             print(f"⚠️ Cognee échoué ({e})")
 
     # Toujours stocker dans SQLite (fiable, rapide, démo-safe)
-    topics = _extract_topics(course_name, summary)
+    topics = _extract_topics(safe_name, safe_summary)
     conn = sqlite3.connect(DB_PATH)
     conn.execute(
         "INSERT OR REPLACE INTO courses (course_name, summary, topics, added_at) VALUES (?, ?, ?, ?)",
-        (course_name, summary, json.dumps(topics, ensure_ascii=False), datetime.now().isoformat())
+        (safe_name, safe_summary, json.dumps(topics, ensure_ascii=False), datetime.now().isoformat())
     )
     conn.commit()
     conn.close()
-    print(f"🗃️ SQLite: '{course_name}' mémorisé → topics: {topics}")
+    print(f"🗃️ SQLite: '{safe_name}' mémorisé → topics: {topics}")
 
 
 async def get_student_context(question: str) -> str:
@@ -126,7 +145,7 @@ async def get_student_context(question: str) -> str:
     # Tentative Cognee (recherche sémantique dans le graphe)
     if COGNEE_AVAILABLE:
         try:
-            results = await cognee.search(SearchType.INSIGHTS, query=question)
+            results = await cognee.search(query_text=question, query_type=SearchType.GRAPH_COMPLETION)
             if results:
                 context_parts.append(f"[Cognee graph] {str(results)[:400]}")
         except Exception as e:
@@ -170,12 +189,19 @@ async def log_interaction(user_message: str, agents_called: list, response: str)
     """
     À appeler à la fin de chaque run_orchestrator().
     Construit l'historique pour détecter les patterns et personnaliser.
+    Garde les 100 dernières interactions maximum (rotation automatique).
     """
     conn = sqlite3.connect(DB_PATH)
     conn.execute(
         "INSERT INTO interactions (user_message, agents_called, response_summary, timestamp) VALUES (?, ?, ?, ?)",
-        (user_message, json.dumps(agents_called), response[:200], datetime.now().isoformat())
+        (user_message[:500], json.dumps(agents_called), response[:200], datetime.now().isoformat())
     )
+    # Rotation : garde seulement les 100 dernières entrées
+    conn.execute("""
+        DELETE FROM interactions WHERE id NOT IN (
+            SELECT id FROM interactions ORDER BY id DESC LIMIT 100
+        )
+    """)
     conn.commit()
     conn.close()
 

@@ -27,7 +27,7 @@ def health():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    result = run_orchestrator(req.message)
+    result = await run_orchestrator(req.message)
     return ChatResponse(
         response=result["response"],
         agents_called=result["agents_called"],
