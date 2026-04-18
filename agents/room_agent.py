@@ -4,6 +4,10 @@ import subprocess
 import datetime
 from dotenv import load_dotenv, set_key
 
+# Ajout des dossiers agents au chemin de recherche Python
+base_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(base_dir, "agent-calendar"))
+
 # LangChain et Bedrock
 import json
 from langchain_aws import ChatBedrockConverse
@@ -187,4 +191,4 @@ if __name__ == "__main__":
         print(run_room_agent(sys.argv[1]))
 
 
-print(run_room_agent("Annule les deux dernieres reservations effectuees"))
+print(run_room_agent("Réserve-moi une salle pour demain à 14h"))
