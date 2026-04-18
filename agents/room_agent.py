@@ -14,11 +14,13 @@ from langchain_aws import ChatBedrockConverse
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-# Chargement de l'environnement depuis le dossier agent-booking
+# Chargement de l'environnement depuis la racine du projet
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-AGENT_BOOKING_DIR = os.path.join(BASE_DIR, "agent-booking")
-load_dotenv(os.path.join(AGENT_BOOKING_DIR, ".env"))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
+# Dossiers de données
+AGENT_BOOKING_DIR = os.path.join(BASE_DIR, "agent-booking")
 HISTORY_FILE = os.path.join(AGENT_BOOKING_DIR, "reservation_history.json")
 
 def log_reservation(date, time):
@@ -191,4 +193,4 @@ if __name__ == "__main__":
         print(run_room_agent(sys.argv[1]))
 
 
-print(run_room_agent("Réserve-moi une salle pour demain à 14h"))
+print(run_room_agent("Réserve-moi une salle pour lundi à 14h"))

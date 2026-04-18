@@ -139,18 +139,19 @@ def add_event(summary: str, start_time: str, end_time: str, location: str = "N/A
 if __name__ == "__main__":
     # Test
     from dotenv import load_dotenv
-    # On charge l'environnement depuis le dossier agent-booking
+    # On charge l'environnement depuis la racine du projet
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    env_path = os.path.join(base_dir, "agent-booking", ".env")
+    project_root = os.path.dirname(base_dir)
+    env_path = os.path.join(project_root, ".env")
     load_dotenv(env_path)
     
     # Test d'ajout manuel
-    print(add_event.invoke({
-        "summary": "Mariage",
-        "start_time": "2026-04-22T12:00:00",
-        "end_time": "2026-04-22T13:30:00",
-        "location": "Mensa"
-    }))
+    # print(add_event.invoke({
+    #     "summary": "Mariage",
+    #     "start_time": "2026-04-22T12:00:00",
+    #     "end_time": "2026-04-22T13:30:00",
+    #     "location": "Mensa"
+    # }))
     
     # Pour appeler un outil décoré avec @tool, on utilise .invoke()
     # print(get_user_schedule.invoke({"days_ahead": 3}))

@@ -1,6 +1,7 @@
 # 🤖 Campus Copilot - Agents System
 
 Ce dossier contient les agents intelligents du projet **Campus Copilot**, conçus pour automatiser la vie étudiante à la TUM.
+Après réservation d'une salle, la mettre dans l'emploi du temps avec l'orchestrator !!!!!
 
 ## 🏢 1. Room Agent (`room_agent.py`)
 Cet agent s'occupe de la gestion des réservations de salles de bibliothèque via le système officiel (SSO).

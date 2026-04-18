@@ -142,5 +142,21 @@
   {
     "role": "assistant",
     "content": "Succ\u00e8s: R\u00e9servation effectu\u00e9e pour le 2026-04-19 \u00e0 14:00:00-16:00:00."
+  },
+  {
+    "role": "user",
+    "content": "R\u00e9serve-moi une salle pour lundi \u00e0 14h"
+  },
+  {
+    "role": "assistant",
+    "content": "Succ\u00e8s: R\u00e9servation effectu\u00e9e pour le 2026-04-20 \u00e0 14:00:00-16:00:00."
+  },
+  {
+    "role": "user",
+    "content": "R\u00e9serve-moi une salle pour lundi \u00e0 14h"
+  },
+  {
+    "role": "assistant",
+    "content": "Succ\u00e8s: R\u00e9servation effectu\u00e9e pour le 2026-04-20 \u00e0 14:00:00-16:00:00."
   }
 ]
