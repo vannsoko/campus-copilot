@@ -1,0 +1,13 @@
+# Secrets
+.env
+manage-bookings/.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+tumai/
+
+# Jupyter
+.ipynb_checkpoints
