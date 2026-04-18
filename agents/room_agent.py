@@ -148,7 +148,7 @@ def run_room_agent(user_message):
         for i, res in enumerate(recent_res):
             history_context += f"- Date: {res['date']}, Heure: {res['time']}\n"
     
-    sys_msg = f"Tu es un assistant IA très utile. Aujourd'hui nous sommes le {today}. Traduis les demandes d'horaires et de dates pour utiliser correctement tes outils `book_study_room` ou `cancel_study_room`. Pour annuler, utilise le format 'YYYY-MM-DD'.{history_context}. Si les horaires ne sont pas précisées, prend 2h de reservation"
+    sys_msg = f"Tu es un assistant IA très utile. Aujourd'hui nous sommes le {today}. Traduis les demandes d'horaires et de dates pour utiliser correctement tes outils `book_study_room` ou `cancel_study_room`. Pour annuler, utilise le format 'YYYY-MM-DD'.{history_context}. Si les horaires ne sont pas précisées, prend 2h de reservationVoici les prochains jours : dimanche 19, lundi 20, mardi 21"
 
     # Chargement de l'historique de conversation
     chat_history = load_chat_history()
@@ -187,4 +187,4 @@ if __name__ == "__main__":
         print(run_room_agent(sys.argv[1]))
 
 
-print(run_room_agent("Annule la derniere reservation"))
+print(run_room_agent("Annule les deux dernieres reservations effectuees"))
