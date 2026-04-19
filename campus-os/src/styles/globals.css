@@ -1,0 +1,33 @@
+:root {
+  --tahoe-accent: #0088ff;
+  --bg-deep: #c9dbff;
+  --bg-mid: #ecf3ff;
+  --glass-1: rgba(255, 255, 255, 0.42);
+  --glass-2: rgba(255, 255, 255, 0.76);
+  --stroke: rgba(255, 255, 255, 0.65);
+  --text-main: rgba(11, 22, 38, 0.96);
+  --text-subtle: rgba(33, 53, 82, 0.82);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  /* SF Pro on Apple platforms via system stack; named faces when available */
+  font-family:
+    'SF Pro Text',
+    'SF Pro Display',
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: var(--text-main);
+}
