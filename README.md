@@ -4,6 +4,11 @@ Campus Co-Pilot is an intelligent, agent-based assistant designed specifically f
 
 It allows students to chat via text or real-time voice to manage their university life, combining multiple specialized AI agents.
 
+
+Check out the demo:
+[demo](demo.mp4)
+
+
 ## 🌟 Key Features
 
 - **TUM Copilot (Text Interface)**: A chat interface to interact with the AI assistant.
