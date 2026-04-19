@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface WordInfo {
   word: string;
@@ -88,6 +89,7 @@ export default function TUMVoice() {
         activeAudioRef.current.pause();
         activeAudioRef.current = null;
     }
+    isPlayingRef.current = false;
 
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.close();
@@ -146,7 +148,7 @@ export default function TUMVoice() {
         }
         // Réponse de l'Agent (Bedrock)
         else if (data.type === "agent") {
-          setAgentText("🤖 " + data.text);
+          setAgentText(data.text);
           if (data.sentences && Array.isArray(data.sentences)) {
             const wordsArr: WordInfo[] = [];
             data.sentences.forEach((sentence: string, sIndex: number) => {
@@ -238,50 +240,74 @@ export default function TUMVoice() {
         )}
       </div>
 
-      <div 
-        ref={agentContainerRef}
-        style={{
-        width: '100%',
-        maxWidth: '600px',
-        height: '110px',
-        padding: '16px',
-        background: 'rgba(0, 136, 255, 0.08)',
-        borderRadius: '12px',
-        border: '1px solid rgba(0, 136, 255, 0.2)',
-        color: 'var(--tahoe-accent)',
-        fontWeight: 500,
-        textAlign: 'center',
-        overflowY: 'auto',
-        lineHeight: '1.8',
-        flexShrink: 0
-      }}>
-        {agentWords.length > 0 ? (
+      {agentWords.length > 0 && isPlayingRef.current && (
+        <div 
+          style={{
+            width: '100%',
+            maxWidth: '600px',
+            height: '60px',
+            padding: '10px 16px',
+            background: 'rgba(0, 136, 255, 0.15)',
+            borderRadius: '12px',
+            border: '1px solid rgba(0, 136, 255, 0.3)',
+            color: 'var(--text-main)',
+            fontWeight: 500,
+            textAlign: 'center',
+            overflowY: 'hidden',
+            lineHeight: '1.8',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
+          }}
+        >
            <div style={{ display: 'inline-block', maxWidth: '100%' }}>
-             <span style={{ marginRight: '8px' }}>🤖</span>
+             <span style={{ marginRight: '8px' }}>🗣️</span>
              {agentWords.map((wInfo, i) => {
-               const isActive = wInfo.sentenceIndex === currentHighlight.sentenceIndex && 
-                                wInfo.wordIndex === currentHighlight.wordIndex;
+               // Only show the sentence currently being spoken
+               if (wInfo.sentenceIndex !== currentHighlight.sentenceIndex) return null;
+               
+               const isActive = wInfo.wordIndex === currentHighlight.wordIndex;
+               // Nettoyage rapide du markdown pour la vue prompteur
+               const cleanWord = wInfo.word.replace(/[*#_`]/g, '');
+               
                return (
                  <span 
                    key={i} 
                    ref={isActive ? activeWordRef : null}
                    style={{ 
                      display: 'inline-block',
-                     marginRight: '4px',
+                     marginRight: '6px',
                      color: isActive ? 'var(--tahoe-accent)' : 'var(--text-subtle)', 
-                     fontWeight: isActive ? 700 : 500,
-                     transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                     fontWeight: isActive ? 800 : 500,
+                     transform: isActive ? 'scale(1.15)' : 'scale(1)',
                      transition: 'all 0.15s ease'
                    }}
                  >
-                   {wInfo.word}
+                   {cleanWord}
                  </span>
                );
              })}
            </div>
-        ) : (
-           <em>{agentText}</em>
-        )}
+        </div>
+      )}
+
+      <div 
+        ref={agentContainerRef}
+        style={{
+        width: '100%',
+        maxWidth: '600px',
+        flexGrow: 1,
+        padding: '16px',
+        background: 'rgba(0, 136, 255, 0.05)',
+        borderRadius: '12px',
+        border: '1px solid rgba(0, 136, 255, 0.1)',
+        overflowY: 'auto',
+        flexShrink: 1
+      }}>
+        <div className="markdown-container" style={{ textAlign: 'left', width: '100%' }}>
+          <ReactMarkdown>{agentText || "Waiting for agent..."}</ReactMarkdown>
+        </div>
       </div>
 
       <button 
