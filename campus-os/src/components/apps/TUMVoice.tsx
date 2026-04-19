@@ -240,35 +240,31 @@ export default function TUMVoice() {
         )}
       </div>
 
-      {agentWords.length > 0 && isPlayingRef.current && (
-        <div 
-          style={{
-            width: '100%',
-            maxWidth: '600px',
-            height: '60px',
-            padding: '10px 16px',
-            background: 'rgba(0, 136, 255, 0.15)',
-            borderRadius: '12px',
-            border: '1px solid rgba(0, 136, 255, 0.3)',
-            color: 'var(--text-main)',
-            fontWeight: 500,
-            textAlign: 'center',
-            overflowY: 'hidden',
-            lineHeight: '1.8',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}
-        >
+      <div 
+        ref={agentContainerRef}
+        style={{
+          width: '100%',
+          maxWidth: '600px',
+          flexGrow: 1,
+          padding: '16px',
+          background: 'rgba(0, 136, 255, 0.08)',
+          borderRadius: '12px',
+          border: '1px solid rgba(0, 136, 255, 0.2)',
+          color: 'var(--text-main)',
+          fontWeight: 500,
+          textAlign: 'center',
+          overflowY: 'auto',
+          lineHeight: '1.8',
+          flexShrink: 1
+        }}
+      >
+        {agentWords.length > 0 ? (
            <div style={{ display: 'inline-block', maxWidth: '100%' }}>
-             <span style={{ marginRight: '8px' }}>🗣️</span>
+             <span style={{ marginRight: '8px' }}>🤖</span>
              {agentWords.map((wInfo, i) => {
-               // Only show the sentence currently being spoken
-               if (wInfo.sentenceIndex !== currentHighlight.sentenceIndex) return null;
+               const isActive = wInfo.sentenceIndex === currentHighlight.sentenceIndex && 
+                                wInfo.wordIndex === currentHighlight.wordIndex;
                
-               const isActive = wInfo.wordIndex === currentHighlight.wordIndex;
-               // Nettoyage rapide du markdown pour la vue prompteur
                const cleanWord = wInfo.word.replace(/[*#_`]/g, '');
                
                return (
@@ -289,25 +285,9 @@ export default function TUMVoice() {
                );
              })}
            </div>
-        </div>
-      )}
-
-      <div 
-        ref={agentContainerRef}
-        style={{
-        width: '100%',
-        maxWidth: '600px',
-        flexGrow: 1,
-        padding: '16px',
-        background: 'rgba(0, 136, 255, 0.05)',
-        borderRadius: '12px',
-        border: '1px solid rgba(0, 136, 255, 0.1)',
-        overflowY: 'auto',
-        flexShrink: 1
-      }}>
-        <div className="markdown-container" style={{ textAlign: 'left', width: '100%' }}>
-          <ReactMarkdown>{agentText || "Waiting for agent..."}</ReactMarkdown>
-        </div>
+        ) : (
+           <em>{agentText.replace(/[*#_`]/g, '')}</em>
+        )}
       </div>
 
       <button 
