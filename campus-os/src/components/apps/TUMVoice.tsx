@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface WordInfo {
   word: string;
@@ -22,6 +23,7 @@ export default function TUMVoice() {
   
   const agentSentencesRef = useRef<string[]>([]);
   const sentenceQueueRef = useRef<number[]>([]);
+  const audioIndexRef = useRef<number>(0);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeWordRef = useRef<HTMLSpanElement | null>(null);
 
@@ -84,10 +86,12 @@ export default function TUMVoice() {
     setCurrentHighlight({ sentenceIndex: -1, wordIndex: -1 });
     audioQueueRef.current = [];
     sentenceQueueRef.current = [];
+    audioIndexRef.current = 0;
     if (activeAudioRef.current) {
         activeAudioRef.current.pause();
         activeAudioRef.current = null;
     }
+    isPlayingRef.current = false;
 
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.close();
@@ -125,6 +129,9 @@ export default function TUMVoice() {
       if (event.data instanceof Blob) {
         console.log("🔊 Audio received from ElevenLabs");
         audioQueueRef.current.push(event.data);
+        sentenceQueueRef.current.push(audioIndexRef.current);
+        audioIndexRef.current += 1;
+        
         if (!isPlayingRef.current) {
           playNextAudio();
         }
@@ -146,7 +153,7 @@ export default function TUMVoice() {
         }
         // Réponse de l'Agent (Bedrock)
         else if (data.type === "agent") {
-          setAgentText("🤖 " + data.text);
+          setAgentText(data.text);
           if (data.sentences && Array.isArray(data.sentences)) {
             const wordsArr: WordInfo[] = [];
             data.sentences.forEach((sentence: string, sIndex: number) => {
@@ -157,7 +164,6 @@ export default function TUMVoice() {
             });
             setAgentWords(wordsArr);
             agentSentencesRef.current = data.sentences;
-            sentenceQueueRef.current = data.sentences.map((_: any, i: number) => i);
           }
         }
       } catch (e) {
@@ -241,46 +247,50 @@ export default function TUMVoice() {
       <div 
         ref={agentContainerRef}
         style={{
-        width: '100%',
-        maxWidth: '600px',
-        height: '110px',
-        padding: '16px',
-        background: 'rgba(0, 136, 255, 0.08)',
-        borderRadius: '12px',
-        border: '1px solid rgba(0, 136, 255, 0.2)',
-        color: 'var(--tahoe-accent)',
-        fontWeight: 500,
-        textAlign: 'center',
-        overflowY: 'auto',
-        lineHeight: '1.8',
-        flexShrink: 0
-      }}>
+          width: '100%',
+          maxWidth: '600px',
+          flexGrow: 1,
+          padding: '16px',
+          background: 'rgba(0, 136, 255, 0.08)',
+          borderRadius: '12px',
+          border: '1px solid rgba(0, 136, 255, 0.2)',
+          color: 'var(--text-main)',
+          fontWeight: 500,
+          textAlign: 'center',
+          overflowY: 'auto',
+          lineHeight: '1.8',
+          flexShrink: 1
+        }}
+      >
         {agentWords.length > 0 ? (
            <div style={{ display: 'inline-block', maxWidth: '100%' }}>
              <span style={{ marginRight: '8px' }}>🤖</span>
              {agentWords.map((wInfo, i) => {
                const isActive = wInfo.sentenceIndex === currentHighlight.sentenceIndex && 
                                 wInfo.wordIndex === currentHighlight.wordIndex;
+               
+               const cleanWord = wInfo.word.replace(/[*#_`]/g, '');
+               
                return (
                  <span 
                    key={i} 
                    ref={isActive ? activeWordRef : null}
                    style={{ 
                      display: 'inline-block',
-                     marginRight: '4px',
+                     marginRight: '6px',
                      color: isActive ? 'var(--tahoe-accent)' : 'var(--text-subtle)', 
-                     fontWeight: isActive ? 700 : 500,
-                     transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                     fontWeight: isActive ? 800 : 500,
+                     transform: isActive ? 'scale(1.15)' : 'scale(1)',
                      transition: 'all 0.15s ease'
                    }}
                  >
-                   {wInfo.word}
+                   {cleanWord}
                  </span>
                );
              })}
            </div>
         ) : (
-           <em>{agentText}</em>
+           <em>{agentText.replace(/[*#_`]/g, '')}</em>
         )}
       </div>
 
