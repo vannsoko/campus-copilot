@@ -9,6 +9,8 @@ Check out the demo:
 [demo](demo.mp4)
 
 
+![home-page](home-page.png)
+
 ## 🌟 Key Features
 
 - **TUM Copilot (Text Interface)**: A chat interface to interact with the AI assistant.
